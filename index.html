@@ -544,16 +544,22 @@
       <div class="contact-item"><div class="ci-icon">📍</div><div><strong>Address</strong><span>3207 Meadowlake Drive, Bryant, AR</span></div></div>
       <div class="contact-item"><div class="ci-icon">🗺️</div><div><strong>Service Area</strong><span>Pulaski &amp; Saline Counties, Arkansas</span></div></div>
     </div>
-    <div class="contact-form">
+    <form class="contact-form" id="contactForm">
+      <!-- Web3Forms access key — routes submissions to willbradshaw09@gmail.com -->
+      <input type="hidden" name="access_key" value="e48c7c9a-492f-4fa7-a0c3-4e87c0f73a5a" />
+      <input type="hidden" name="subject" value="New Service Request – All Drains 70 Plumbing" />
+      <input type="hidden" name="from_name" value="All Drains 70 Website" />
+      <input type="checkbox" name="botcheck" style="display:none" />
+
       <div class="form-row">
-        <div class="form-group"><label>First Name</label><input type="text" placeholder="John" /></div>
-        <div class="form-group"><label>Last Name</label><input type="text" placeholder="Smith" /></div>
+        <div class="form-group"><label>First Name</label><input type="text" name="first_name" placeholder="John" required /></div>
+        <div class="form-group"><label>Last Name</label><input type="text" name="last_name" placeholder="Smith" /></div>
       </div>
-      <div class="form-group"><label>Phone Number</label><input type="tel" placeholder="(501) 000-0000" /></div>
-      <div class="form-group"><label>Email</label><input type="email" placeholder="john@email.com" /></div>
+      <div class="form-group"><label>Phone Number</label><input type="tel" name="phone" placeholder="(501) 000-0000" /></div>
+      <div class="form-group"><label>Email</label><input type="email" name="email" placeholder="john@email.com" required /></div>
       <div class="form-group">
         <label>Service Needed</label>
-        <select>
+        <select name="service">
           <option value="">Select a service...</option>
           <option>Drain Cleaning ($125+)</option>
           <option>Leak Detection ($350)</option>
@@ -570,9 +576,10 @@
           <option>Other / Not Sure</option>
         </select>
       </div>
-      <div class="form-group"><label>Describe the Issue</label><textarea placeholder="Tell us a little about the problem..."></textarea></div>
-      <button class="form-submit">Send Request →</button>
-    </div>
+      <div class="form-group"><label>Describe the Issue</label><textarea name="message" placeholder="Tell us a little about the problem..." required></textarea></div>
+      <button type="submit" class="form-submit">Send Request →</button>
+      <div id="formResult" style="margin-top:1rem; font-size:0.9rem; text-align:center; display:none;"></div>
+    </form>
   </div>
 </section>
 
@@ -591,10 +598,52 @@
 </footer>
 
 <script>
-  document.querySelector(".form-submit").addEventListener("click", function() {
-    this.textContent = "✓ Request Sent!";
-    this.style.background = "#0096b0";
-    setTimeout(() => { this.textContent = "Send Request →"; this.style.background = ""; }, 3000);
+  // Web3Forms submission
+  const form = document.getElementById("contactForm");
+  const result = document.getElementById("formResult");
+  const submitBtn = form.querySelector(".form-submit");
+
+  form.addEventListener("submit", async function(e) {
+    e.preventDefault();
+    submitBtn.textContent = "Sending...";
+    submitBtn.disabled = true;
+    result.style.display = "none";
+
+    const formData = new FormData(form);
+    const object = Object.fromEntries(formData);
+    const json = JSON.stringify(object);
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: json
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        submitBtn.textContent = "✓ Message Sent!";
+        submitBtn.style.background = "#0096b0";
+        result.style.color = "#48cae4";
+        result.textContent = "Thanks! We'll be in touch soon.";
+        result.style.display = "block";
+        form.reset();
+        setTimeout(() => {
+          submitBtn.textContent = "Send Request →";
+          submitBtn.style.background = "";
+          submitBtn.disabled = false;
+          result.style.display = "none";
+        }, 5000);
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      submitBtn.textContent = "Send Request →";
+      submitBtn.disabled = false;
+      result.style.color = "#ff6b6b";
+      result.textContent = "Something went wrong. Please call us directly at (501) 909-9172.";
+      result.style.display = "block";
+    }
   });
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(e => {
