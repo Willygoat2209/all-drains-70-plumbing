@@ -577,7 +577,7 @@
         </select>
       </div>
       <div class="form-group"><label>Describe the Issue</label><textarea name="message" placeholder="Tell us a little about the problem..." required></textarea></div>
-      <button type="submit" class="form-submit">Send Request →</button>
+      <button type="button" class="form-submit" id="submitBtn">Send Request →</button>
       <div id="formResult" style="margin-top:1rem; font-size:0.9rem; text-align:center; display:none;"></div>
     </form>
   </div>
@@ -598,13 +598,23 @@
 </footer>
 
 <script>
-  // Web3Forms submission
+  // Web3Forms — button click handler (bypasses all native form submission)
   const form = document.getElementById("contactForm");
   const result = document.getElementById("formResult");
-  const submitBtn = form.querySelector(".form-submit");
+  const submitBtn = document.getElementById("submitBtn");
 
-  form.addEventListener("submit", async function(e) {
-    e.preventDefault();
+  submitBtn.addEventListener("click", async function() {
+    const firstName = form.querySelector("[name='first_name']").value.trim();
+    const email = form.querySelector("[name='email']").value.trim();
+    const message = form.querySelector("[name='message']").value.trim();
+
+    if (!firstName || !email || !message) {
+      result.style.color = "#ff6b6b";
+      result.textContent = "Please fill in your name, email, and message.";
+      result.style.display = "block";
+      return;
+    }
+
     submitBtn.textContent = "Sending...";
     submitBtn.disabled = true;
     result.style.display = "none";
@@ -638,4 +648,26 @@
         throw new Error(data.message);
       }
     } catch (error) {
-      submitBtn.textC
+      submitBtn.textContent = "Send Request →";
+      submitBtn.disabled = false;
+      result.style.color = "#ff6b6b";
+      result.textContent = "Something went wrong. Please call us at (501) 909-9172.";
+      result.style.display = "block";
+    }
+  });
+
+  // Scroll reveal animation
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.style.opacity = "1"; e.target.style.transform = "translateY(0)"; }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll(".service-card, .why-feature, .review-card, .price-card").forEach(el => {
+    el.style.opacity = "0";
+    el.style.transform = "translateY(24px)";
+    el.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
